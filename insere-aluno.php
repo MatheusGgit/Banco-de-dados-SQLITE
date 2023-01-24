@@ -1,10 +1,19 @@
 <?php
-use Alura\Pdo\Domain\Model\Student;
 require_once 'vendor/autoload.php';
-$caminho = __DIR__ . '/banco.sqlite';
-$pdo = new PDO('sqlite:'.$caminho);
+use Alura\Pdo\Domain\Model\Student;
+use Alura\Pdo\Infrastructure\ConnectionCreator;
 
-$student = new Student(null, 'Matheus Garcia');
+$pdo = ConnectionCreator::createConnection();
 
-$sqlInsert = "INSERT INTO students (name) VALUES ('{$student->name()}')";
-var_dump($pdo->exec($sqlInsert));
+// Exemplo de Sql Injection
+$student = new Student(null, "Matheus Garcia', ''); DROP TABLE students -- Dias");
+
+// Preparando o comando Sql para evitar o injection
+$sqlInsert = "INSERT INTO students (name) VALUES (:name)";
+$statement = $pdo->prepare($sqlInsert);
+$statement->bindValue(':name', $student->name());
+
+// Executa o comando
+$statement->execute();
+
+//var_dump($pdo->exec($sqlInsert));
